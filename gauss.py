@@ -1,4 +1,4 @@
-import solver
+import solver, math
 
 
 class Gauss(solver.Solver):
@@ -33,7 +33,10 @@ class Gauss(solver.Solver):
             (temp0, temp1) = self.select(line)
             transpositions.append((temp0, temp1))
             self.transpose(line, line, temp0, temp1)
-            m = 1/A[line][line]
+            if A[line][line]:
+                m = 1/A[line][line]
+            else:
+                return [math.nan for i in range(self.h)]
             self.lineMul(line, m)
             for line0 in range(line + 1, self.h):
                 self.lineSub(line0, line, A[line0][line])

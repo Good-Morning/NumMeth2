@@ -1,7 +1,7 @@
 import os, sys, numpy, random, copy, solver, re
 
 def goodCond(size):
-    return [[10/(1 + 2*abs(i - j)) for j in range(size)] for i in range(size)]
+    return [[10/(1 + 4*abs(i - j)) for j in range(size)] for i in range(size)]
 
 def randCond(size):
     return [[100*random.random() for i in range(size)] for j in range(size)]
