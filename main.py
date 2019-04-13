@@ -11,11 +11,11 @@ def gilbCond(size):
 
 modules = {}
 
-for module in map(lambda x: x[:-3], filter(lambda x: x != 'main.py' and x != 'solver.py' and x[-3:] == '.py', os.listdir())):
+for module in map(lambda x: x[:-3], filter(lambda x: x != 'main.py' and x[-3:] == '.py', os.listdir())):
     exec('import {}'.format(module))
-    modules[module] = filter(lambda x: str(getattr(x, '__class__')) == "<class 'type'>" and issubclass(x, solver.Solver), 
-                         map(lambda x: getattr(sys.modules[module], x), 
-                         sys.modules[module].__dir__()))
+    mod = sys.modules[module]
+    modules[module] = [x for x in [getattr(mod, x) for x in dir(mod)] if str(type(x)) == "<class 'type'>" and issubclass(x, solver.Solver)]
+modules = {i:modules[i] for i in modules if len(modules[i])}
 
 sizeFrom = 2
 sizeTo = 10

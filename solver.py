@@ -1,4 +1,6 @@
+import numpy
+
 class Solver:
 
     def solve(self, A, b):
-        raise "This should be override"
+        return numpy.linalg.solve(A, b)

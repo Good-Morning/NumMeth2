@@ -1,4 +1,5 @@
-import solver, numpy
+import solver
+
 
 class Gauss(solver.Solver):
 
