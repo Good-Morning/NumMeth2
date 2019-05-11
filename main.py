@@ -19,47 +19,86 @@ for module in map(lambda x: x[:-3], filter(lambda x: x != 'main.py' and x[-3:] =
 modules = {i:modules[i] for i in modules if len(modules[i])}
 
 sizeFrom = 5
-sizeTo = 6
+sizeTo = 5
 
 tests = [
-    ('random   ', [randCond(i) for i in range(sizeFrom, sizeTo+1)]), 
+    ('random',    [randCond(i) for i in range(sizeFrom, sizeTo+1)]), 
     ('good cond', [goodCond(i) for i in range(sizeFrom, sizeTo+1)]), 
-    ('bad cond ', [gilbCond(i) for i in range(sizeFrom, sizeTo+1)]), 
+    ('bad cond',  [gilbCond(i) for i in range(sizeFrom, sizeTo+1)]), 
 ]
 
 wb = openpyxl.Workbook()
 ws = wb['Sheet']
 
 sizeSize = sizeTo - sizeFrom + 1
+side = openpyxl.styles.Side(border_style='thin', color="FF000000")
+zide = openpyxl.styles.Side(border_style='medium', color="FF000000")
 ws['A1'] = 'module'
 ws['B1'] = 'solver'
-ws['A2'] = 'size'
-ws['A3'] = 'cond'
-for (test, testi) in zip(tests, itertools.count()):
-    head = 3 + testi*sizeSize
+ws['A1'].alignment = openpyxl.styles.Alignment(horizontal='center', vertical='center')
+ws['B1'].alignment = openpyxl.styles.Alignment(horizontal='center', vertical='center')
+ws['A1'].border = openpyxl.styles.Border(right=side, bottom=zide)
+ws['B1'].border = openpyxl.styles.Border(right=zide, bottom=zide)
+ws.merge_cells('A1:A3')
+ws.merge_cells('B1:B3')
+head = 3
+height = 3
+for module in modules:
+    height += len(modules[module])
+for test in tests:
     ws.cell(1, head, test[0])
+    ws.cell(1, head).alignment = openpyxl.styles.Alignment(horizontal='center')
+    ws.cell(1, head).border = openpyxl.styles.Border(right=zide)
+    for i in range(3, height + 1):
+        ws.cell(i, head).border = openpyxl.styles.Border(right=side)
+        ws.cell(i, head+1).border = openpyxl.styles.Border(right=side)
+    ws.merge_cells(start_column=head, start_row=1, end_column=head + sum(range(sizeFrom+2, sizeTo+3)) - 1, end_row=1)
     for i in range(sizeFrom, sizeTo + 1):
-        ws.cell(2, head + i - sizeFrom, i)
-        ws.cell(3, head + i - sizeFrom, '{0:.6g}'.format(numpy.linalg.cond(test[1][i - sizeFrom])))
-    ws.merge_cells(start_column=head, start_row=1, end_column=head + sizeSize - 1, end_row=1)
+        ws.cell(2, head, 'size: ' + str(i) + '   cond: ' + '{0:.6g}'.format(numpy.linalg.cond(test[1][i - sizeFrom])))
+        ws.cell(2, head).alignment = openpyxl.styles.Alignment(horizontal='center')
+        ws.cell(2, head).border = openpyxl.styles.Border(right=zide)
+        ws.cell(3, head,   'error')
+        ws.cell(3, head+1, 'iterations')
+        ws.cell(3, head+2, 'solution')
+        ws.cell(3, head).border   = openpyxl.styles.Border(left=side, right=side, bottom=zide)
+        ws.cell(3, head+1).border = openpyxl.styles.Border(left=side, right=side, bottom=zide)
+        ws.cell(3, head+2).border = openpyxl.styles.Border(left=side, right=zide, bottom=zide)
+        ws.merge_cells(None, 3, head+2, 3, head + i + 1)
+        ws.merge_cells(start_column=head, start_row=2, end_column=head + i + 1, end_row=2)
+        for j in range(3, height + 1):
+            was = ws.cell(j, head + i + 1).border
+            ws.cell(j, head + i + 1).border = openpyxl.styles.Border(right=zide, top=was.top, bottom=was.bottom)
+        head += i+2
 methods = 0
-for (module, modulei) in zip(modules, itertools.count()):
+width = head
+for module in modules:
     ws.cell(4+methods, 1, module)
-    flag = False
+    ws.cell(4+methods, 1).alignment = openpyxl.styles.Alignment(vertical='top')
+    ws.cell(4+methods, 1).border = openpyxl.styles.Border(right=side, bottom=side)
+    bottom = 3+methods+len(modules[module])
+    for i in range(1, width):
+        was = ws.cell(bottom, i).border
+        ws.cell(bottom, i).border = openpyxl.styles.Border(bottom=side, right=was.right, left=was.left, top=was.top)
+    ws.merge_cells(None, 4+methods, 1, bottom, 1)
     for worker in modules[module]:
         ws.cell(4+methods, 2, re.match(r"<class '.*?\.(.*)'>", str(worker))[1])
-        for (testPack, testPacki) in zip(tests, itertools.count()):
-            for (A, Ai) in zip(testPack[1], itertools.count()):
+        was = ws.cell(4+methods, 2).border
+        ws.cell(4+methods, 2).border = openpyxl.styles.Border(right=zide, left=was.left, bottom=was.bottom, top=was.top)
+        head = 3
+        for testPack in tests:
+            for A in testPack[1]:
                 b = [i for i in range(len(A))]
                 fun = worker().solve
+                (x, iters) = fun(copy.deepcopy(A), copy.deepcopy(b))
+                ws.cell(4+methods, head, '{0:.4g}'.format(numpy.linalg.norm(b - numpy.dot(A, x))))
+                ws.cell(4+methods, head + 1, str(iters))
+                head += 2
+                for i in x:
+                    ws.cell(4+methods, head, str(i))
+                    head += 1
+        methods += 1
 
-                # print("A: ", A)
-                # print("b: ", b) 
-                # print("cond(A)", numpy.linalg.cond(A))
-                x = fun(copy.deepcopy(A), copy.deepcopy(b))
-                # print("x: ", fun(A, b))
-                # print(x)
-                ws.cell(4+methods, 3+testPacki*sizeSize+Ai, ' '.join(['{0:.8g}'.format(x) for x in x]))
-        methods+=1
+for cc in ws.columns:
+    ws.column_dimensions[cc[3].column_letter].width = max(2 + len(c.value or "") for c in cc)
 
 wb.save('output.xlsx')

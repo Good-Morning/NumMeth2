@@ -17,19 +17,17 @@ class Relax(solver.Solver):
         MAXIT = 100000
         for i in range(MAXIT):
             xnew = x.copy()
-            
-            
             for i in range (n):
                 xnew[i] = numpy.dot (c[i], xnew) + d[i]
                 xnew[i] = xnew[i] + (w - 1) * (xnew[i] - x[i])
             if (math.sqrt(sum((xnew - x)**2)) < eps):
-                print(i)
-                return xnew
+                # print(i)
+                return (xnew, i)
             # print(xnew)
             # print(x)
             # print("===")
             x = xnew
-        return [math.nan]
+        return (xnew, MAXIT) # [math.nan]
 
     def solve (self, a, b):
         a = numpy.array(a)
@@ -49,10 +47,10 @@ class Seidel(solver.Solver):
             for i in range (n):
                 xnew[i] = numpy.dot (c[i], xnew) + d[i]
             if (math.sqrt(sum((xnew - x)**2)) < eps):
-                print(i)
-                return xnew
+                # print(i)
+                return (xnew, i)
             x = xnew
-        return [math.nan]
+        return (xnew, MAXIT) # [math.nan]
     
     def solve(self, a, b):
         a = numpy.array(a)

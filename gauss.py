@@ -36,7 +36,7 @@ class Gauss(solver.Solver):
             if A[line][line]:
                 m = 1/A[line][line]
             else:
-                return [math.nan for i in range(self.h)]
+                return ([math.nan for i in range(self.h)], 1)
             self.lineMul(line, m)
             for line0 in range(line + 1, self.h):
                 self.lineSub(line0, line, A[line0][line])
@@ -46,7 +46,7 @@ class Gauss(solver.Solver):
         for line in [self.h-i-1 for i in range(self.h)]:
             (temp0, temp1) = transpositions.pop()
             self.transpose(line, line, line, temp0)
-        return b
+        return (b, 1)
 
 
 class GaussSelectRow(Gauss):
