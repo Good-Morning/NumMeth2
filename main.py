@@ -10,6 +10,11 @@ def randCond(size):
 def gilbCond(size):
     return [[1/(2+i+j) for i in range(size)] for j in range(size)]
 
+def normCond(size):
+    t = randCond(size)
+    n = numpy.linalg.norm(t)
+    return [[x/n for x in xs] for xs in t]
+
 modules = {}
 
 for module in map(lambda x: x[:-3], filter(lambda x: x != 'main.py' and x[-3:] == '.py', os.listdir())):
@@ -24,6 +29,7 @@ sizeTo = 5
 tests = [
     ('random',    [randCond(i) for i in range(sizeFrom, sizeTo+1)]), 
     ('good cond', [goodCond(i) for i in range(sizeFrom, sizeTo+1)]), 
+    ('normized', [normCond(i) for i in range(sizeFrom, sizeTo+1)]), 
     ('bad cond',  [gilbCond(i) for i in range(sizeFrom, sizeTo+1)]), 
 ]
 
